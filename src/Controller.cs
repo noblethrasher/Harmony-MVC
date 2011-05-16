@@ -6,8 +6,8 @@ using System.Web;
 
 namespace Harmony
 {
-    interface Controller : IHttpHandler
+    public interface Controller : IHttpHandler
     {
-        Controller HandleMessage(string PathSegment, HttpContextBase context = null);
+        Controller HandleMessage(string PathSegment, HttpContextBase context);
     }
 }

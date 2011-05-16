@@ -6,19 +6,33 @@ using System.Web;
 
 namespace Harmony
 {
-    abstract class UrlMappingModule<TRoot> : IHttpModule where TRoot : Controller, new()
+    public abstract class UrlMappingModule<TRoot> : IHttpModule where TRoot : Controller, new()
     {
+        static readonly string[] excludedFiles = new[] 
+            {
+                ".jpg", ".jpeg", ".png", ".gif", ".html", ".htm", ".css", ".js", ".cs"
+            };
+
+        
         public void Init(HttpApplication context)
         {
-            context.BeginRequest += delegate
+            context.PostResolveRequestCache += delegate
             {
-                Controller controller = new TRoot();
+                
                 var path = context.Context.Request.Path.Split('/');
 
-                foreach (var segment in path)
-                    controller = controller.HandleMessage(segment);
+                var lastSegment = path[path.Length - 1];
 
-                context.Context.RemapHandler(controller);
+                if (!excludedFiles.Any(x => lastSegment.EndsWith(x, StringComparison.OrdinalIgnoreCase)))
+                {
+                    Controller controller = new TRoot();
+                    foreach (var segment in path)
+                        controller = controller.HandleMessage(segment, new HttpContextWrapper(context.Context));
+
+                    context.Context.RemapHandler(controller);
+                }
+
+                
             };
         }
 
